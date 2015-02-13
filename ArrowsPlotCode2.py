@@ -6,7 +6,7 @@
 #clearall()
 
 from numpy import arange, array, pi, zeros, empty,sqrt, copy, sin, cos, nonzero, ravel, append,tanh, add, savetxt
-#from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt
 import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
