@@ -11,11 +11,13 @@
 #include <vector>
 #include <iterator>
 
-#include "Element.h"
-#include "Energy.h"
-#include "TwoLayers.h"
+//#include "Element.h"
+//#include "Energy.h"
+//#include "TwoLayers.h"
+#include "PythonCopy.h"
 
 int main() {
+	test();
 
 //	std::vector<double *> x;
 //	double	y = 5;
@@ -34,14 +36,14 @@ int main() {
 //	std::cout << "y: " << &y << " x " << x[0];
 
 
-	double thickness = 2.5;
-	Ni ni = Ni(thickness, M_PI, 1e-5);
-	Gd gd = Gd(thickness, 0);
-	double J_int = -5.e-22; // interface exchange coupling constant
-	TwoLayers stack = TwoLayers(&ni, &gd, J_int);
-
-	Energy e = Energy(stack);
-	e.iter(0.5, 10);
-////	e.mag(5);
-	return 0;
+//	double thickness = 2.5;
+//	Ni ni = Ni(thickness, M_PI, 1e-5);
+//	Gd gd = Gd(thickness, 0);
+//	double J_int = -5.e-22; // interface exchange coupling constant
+//	TwoLayers stack = TwoLayers(&ni, &gd, J_int);
+//
+//	Energy e = Energy(stack);
+//	e.iter(0.5, 10);
+//////	e.mag(5);
+//	return 0;
 }

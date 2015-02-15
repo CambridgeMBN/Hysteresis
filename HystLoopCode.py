@@ -1,21 +1,21 @@
 from numpy import arange, array, pi, zeros, empty,sqrt, copy, sin, cos, nonzero, ravel, append,tanh, add, savetxt
-from matplotlib import pyplot as plt
-from pylab import *
+#from matplotlib import pyplot as plt
+#from pylab import *
 import math
-import scipy.optimize as opt
-from random import randrange,shuffle
-from matplotlib.ticker import MultipleLocator, MaxNLocator
+#import scipy.optimize as opt
+#from random import randrange,shuffle
+#from matplotlib.ticker import MultipleLocator, MaxNLocator
 
 theta=pi/4
 phis = [pi/2,0.] #first entry is  the initial phi for Ni, second entry is the initial phi for Gd
 
 savepath = 'Arrow_Data/'
 
-Tlist=[6.4, 30., 37.5, 40., 50.]#5.,10.,15.,20.,25.,45.,55.,60.,65.,70.,75.]
+Tlist=[6.4]#, 30., 37.5, 40., 50.]#5.,10.,15.,20.,25.,45.,55.,60.,65.,70.,75.]
 for T in Tlist:
     #Tc=[631,33.05]
     Tc=[631.,28.] #(28 is pretty good)
-    kb=1.3806488E-23
+#    kb=1.3806488E-23
     mu0 = 4*pi*1E-7
     N_Ni = 9.14E28
     N_Gd = 3.02E28
@@ -26,13 +26,13 @@ for T in Tlist:
     K = array([4000./N_Ni*2, 17500./N_Gd*(MT[1]/7*2)**3/4])*3/1.5 #4000, 17500
     Js = array([1.2E-22, 2.625E-24])*4.45/2
     Jex = -5.E-22
-    Thickness_Ni=7. #7.#       at Ni4. and Gd3. they both flip? 
+    Thickness_Ni=7. #7.#   
     Thickness_Gd=7.9 #7.9    
 
     nGd=int(round(Thickness_Gd/0.3,0))
     nNihalf=int(round(Thickness_Ni/0.4,0))
     nNi=nNihalf*2
-
+    
     Ni = [0]
     Gd = [1]
     layers = nNihalf*Ni + (nGd)*Gd + nNihalf*Ni
@@ -50,7 +50,10 @@ for T in Tlist:
     Ms = create_stack(n,layers,M)
     Mt = create_stack(n,layers,MT)
     phi0 = create_stack(n,layers,phis)
-
+    
+    # print 'layers ', layers, ' ku ', Ku, ' ms ', Ms, ' ', Mt, ' ', phi0
+    
+    
     if n_stack%2==1:
         half_point=int((n_stack+1)/2)
     else:
@@ -72,6 +75,7 @@ for T in Tlist:
             J[i] = Js[0]
         J[len(Ms)-2-i]=J[i]
 
+    # print 'J ', J
     B = arange(-0.5,0.5,.01)
     H = B/mu0
 
@@ -83,8 +87,11 @@ for T in Tlist:
                                #phi0 is the array that stands for the initial phi of the layers
     phi_store = empty(n_stack)
 
-    def magnetic_energy(H,Ku,theta,Mt,Ms,Msup,phiup,Jup,Msdn,phidn,Jdn):
-
+    def magnetic_energy(H,Ku,theta,Mt,Ms,Msup,phiup,Jup,Msdn,phidn,Jdn, i):
+        # print locals.get('arg')
+        if i > 17:
+            print 'i ', i, ' H ', H, ' Ku ', Ku, ' theta ', theta, ' Mt ', Mt, ' Ms ', Ms, ' MSup', Msup, ' phiup ', phiup, \
+                ' Jup ', Jup, ' MsDn ', Msdn, ' PhiDn ', phidn, ' JDn ', Jdn
         Asin=Jup*Msup*sin(phiup)+Jdn*Msdn*sin(phidn)
         Acos=Jup*Msup*cos(phiup)+Jdn*Msdn*cos(phidn)
         Atot=sqrt(Asin**2+Acos**2)
@@ -113,21 +120,30 @@ for T in Tlist:
         else:
             phase=phase1
        
+        if i > 17:
+            print 'i ', i, 'k ', Ku, ' abs1 ', absphase1, ' abs2 ', absphase2, ' ct1 ', Ctot2, ' ct2 ', Ctot2, ' p1 ', phase1, ' p2 ', phase2, ' p ', phase
+        # print phase
         return phase
         
     def hysterisis(phi0,RANGE):
-               
+        RANGE = [0]
         for k in RANGE:
             iterations = 0
             delta = array(range(n_stack))
 
-            while delta[2:-2].max()>0.001:
+            # while delta[2:-2].max()>0.1: # 0.0001
+            while (iterations <= 0):
+                print " \n"
                 phi_check=copy(phi0)
                 
-                for i in range(1, half_point,1): 
+                for i in range(1, 22, 1): # range(1, half_point,1): 
                     phi0[i]= magnetic_energy(H[k],Ku[i],theta,Mt[i],Ms[i],\
-                        Ms[i-1],phi0[i-1],J[i-1],Ms[i+1],phi0[i+1],J[i])
+                        Ms[i-1],phi0[i-1],J[i-1],Ms[i+1],phi0[i+1],J[i], i)
+                    a = phi0
+                    # print "p01 ", phi0
                     phi0[len(Ms)-1-i]=phi0[i]
+                    # b = phi0
+                    # print "p02 ", phi0 , " diff ", a-b
                      
                 delta = abs(phi_check - phi0) 
                 
