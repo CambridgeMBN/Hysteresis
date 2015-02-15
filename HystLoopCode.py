@@ -89,9 +89,9 @@ for T in Tlist:
 
     def magnetic_energy(H,Ku,theta,Mt,Ms,Msup,phiup,Jup,Msdn,phidn,Jdn, i):
         # print locals.get('arg')
-        if i > 17:
-            print 'i ', i, ' H ', H, ' Ku ', Ku, ' theta ', theta, ' Mt ', Mt, ' Ms ', Ms, ' MSup', Msup, ' phiup ', phiup, \
-                ' Jup ', Jup, ' MsDn ', Msdn, ' PhiDn ', phidn, ' JDn ', Jdn
+        # if i > 16:
+        #     print 'i ', i, ' H ', H, ' Ku ', Ku, ' theta ', theta, ' Mt ', Mt, ' Ms ', Ms, ' MSup', Msup, ' phiup ', phiup, \
+        #         ' Jup ', Jup, ' MsDn ', Msdn, ' PhiDn ', phidn, ' JDn ', Jdn
         Asin=Jup*Msup*sin(phiup)+Jdn*Msdn*sin(phidn)
         Acos=Jup*Msup*cos(phiup)+Jdn*Msdn*cos(phidn)
         Atot=sqrt(Asin**2+Acos**2)
@@ -119,9 +119,10 @@ for T in Tlist:
             phase=phase2
         else:
             phase=phase1
-       
-        if i > 17:
-            print 'i ', i, 'k ', Ku, ' abs1 ', absphase1, ' abs2 ', absphase2, ' ct1 ', Ctot2, ' ct2 ', Ctot2, ' p1 ', phase1, ' p2 ', phase2, ' p ', phase
+        
+        print 'i ', i, ' phase: ', phase
+        # if i > 16:
+        #     print 'i ', i, 'k ', Ku, ' as ', Asin, ' acos ', Acos, ' part ', Jdn, ' abs1 ', absphase1, ' abs2 ', absphase2, ' ct1 ', Ctot2, ' ct2 ', Ctot2, ' p1 ', phase1, ' p2 ',phase2, ' p ', phase
         # print phase
         return phase
         
@@ -136,7 +137,7 @@ for T in Tlist:
                 print " \n"
                 phi_check=copy(phi0)
                 
-                for i in range(1, 22, 1): # range(1, half_point,1): 
+                for i in range(1, half_point, 1): # range(1, half_point,1): 
                     phi0[i]= magnetic_energy(H[k],Ku[i],theta,Mt[i],Ms[i],\
                         Ms[i-1],phi0[i-1],J[i-1],Ms[i+1],phi0[i+1],J[i], i)
                     a = phi0

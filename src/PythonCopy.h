@@ -74,10 +74,12 @@ const double Element::mu_B = 9.274e-24;
 double Element::theta = M_PI / 4;
 
 class Gd: public Element {
-public:
+private:
 	double T_c = 28;
 	double rho = 3.02e28;
-	double J_s = 2.625e-22 * 4.45 / 2;
+	double J_s = 2.625e-24 * 4.45 / 2;
+
+public:
 
 	Gd(double thickness, double phi) :
 			Element() {
@@ -102,10 +104,12 @@ public:
 };
 
 class Ni: public Element {
-public:
+private:
 	double T_c = 631;
 	double rho = 9.14e28;
 	double J_s = 1.2e-22 * 4.45 / 2;
+
+public:
 
 	Ni(double thickness, double phi) :
 			Element() {
@@ -162,7 +166,6 @@ struct Stack {
 
 				double MS_down, J_down, phiDown;
 				if (it == top->phiList.end() - 1) {
-					std::cout << "end " << std::endl;
 					MS_down = down->M(0);
 					J_down = J_ex;
 					phiDown = *down->phiList.begin();
@@ -172,15 +175,11 @@ struct Stack {
 					phiDown = *std::next(it);
 				}
 
-				/*
-				 *         print 'i ', i, ' H ', H, ' Ku ', Ku, ' theta ', theta, ' Mt ', Mt, ' Ms ', Ms, ' MSup', Msup,
-				 *         ' phiup ', phiup,
-				 *         ' Jup ', Jup, ' MsDn ', Msdn, ' PhiDn ', phidn, ' JDn ', Jdn
-				 */
-
-				std::cout << " i " << i << " H " << H << " Ku " << K << " theta " <<  theta << " MT " << M_T << " MS " << M_0 <<
-						" phiUP " << phiUp << " Jup " << J_up << " MSDn " << MS_down <<
-							" phiDN " << phiDown << " JDn " << J_down << std::endl;
+//				std::cout << " i " << i << " H " << H << " Ku " << K
+//						<< " theta " << theta << " MT " << M_T << " MS " << M_0
+//						<< " phiUP " << phiUp << " Jup " << J_up << " MSDn "
+//						<< MS_down << " phiDN " << phiDown << " JDn " << J_down
+//						<< std::endl;
 
 				double ASin = J_up * MS_up * sin(phiUp)
 						+ J_down * MS_down * sin(phiDown);
@@ -207,18 +206,95 @@ struct Stack {
 
 				double phase = (CTot1 < CTot2) ? phase2 : phase1;
 
+				std::cout << std::setprecision(15) << "i: " << i
+											<< " p " << phase << std::endl;
 				//	        print 'a ', Asin, ' c ', Acos, ' ', Atot, ' Bt ', Btot, ' Ctot1 ', Ctot1, ' abs1 ', absphase1, ' abs2 ',
 				// absphase2, ' ct1 ', Ctot2, \
 				 ' p1 ', phase1, ' p2 ', phase2, ' p ', phase
 				//             print 'i ', i, 'k ', Ku, ' abs1 ', absphase1, ' abs2 ', absphase2,
 				// ' ct1 ', Ctot2, ' ct2 ', Ctot2, ' p1 ', phase1, ' p2 ', phase2, ' p ', phase
-				if (i > 17) {
-					std::cout << std::setprecision(15) << "i: " << i << " k " << K <<
-						" abs1 " << absPhase1 << " abs2 " << absPhase2 << " ct1 " << CTot1 << " ct2 " << CTot2 <<
-						" p1 " << phase1 << " p2 " << phase2 << " p " << phase
-							<< std::endl;
+				if (i > 16) {
+//					std::cout << std::setprecision(15) << "i: " << i << " k "
+//							<< K << " abs1 " << absPhase1 << " abs2 "
+//							<< absPhase2 << " ct1 " << CTot1 << " ct2 " << CTot2
+//							<< " p1 " << phase1 << " p2 " << phase2 << " p "
+//							<< phase << std::endl;
 
 				}
+
+				*it = phase;
+				it++;
+			}
+
+			it = down->phiList.begin();
+
+			for (int j = 0; j < (int) down->phiList.size(); j++) {
+				int i = j + top->phiList.size();
+				if (it == down->phiList.begin()) {
+					phiUp = *(top->phiList.end() - 1);
+					MS_up = top->M(0);
+					J_up = J_ex;
+				} else {
+					phiUp = *std::prev(it);
+					MS_up = down->M(0);
+					J_up = down->getJ_s();
+				}
+
+				double K = down->K(T);
+				double M_0 = down->M(0);
+				double M_T = down->M(T);
+
+				double MS_down, J_down, phiDown;
+				if (it == down->phiList.end() - 1) {
+					MS_down = down->M(0);
+					J_down = down->getJ_s();
+					phiDown = *std::next(it);
+				} else {
+					MS_down = down->M(0);
+					J_down = down->getJ_s();
+					phiDown = *std::next(it);
+				}
+
+				double ASin = J_up * MS_up * sin(phiUp)
+						+ J_down * MS_down * sin(phiDown);
+				double ACos = J_up * MS_up * cos(phiUp)
+						+ J_down * MS_down * cos(phiDown);
+				double BTot = Element::mu_0 * 2 * Element::mu_B * H;
+
+				double CTot1 = sqrt(
+						pow(M_0 * ACos + M_T * BTot + K * cos(theta), 2)
+								+ pow(M_0 * ASin + K * sin(theta), 2));
+				double CTot2 = sqrt(
+						pow(M_0 * ACos + M_T * BTot - K * cos(theta), 2)
+								+ pow(M_0 * ASin - K * sin(theta), 2));
+
+				double absPhase1 = asin((M_0 * ASin + K * sin(theta)) / CTot1);
+				double absPhase2 = asin((M_0 * ASin - K * sin(theta)) / CTot2);
+
+				double phase1 =
+						(M_0 * ACos + M_T * BTot + K * cos(theta) >= 0) ?
+								absPhase1 : M_PI - absPhase1;
+				double phase2 =
+						(M_0 * ACos + M_T * BTot - K * cos(theta) >= 0) ?
+								absPhase2 : M_PI - absPhase2;
+
+				double phase = (CTot1 < CTot2) ? phase2 : phase1;
+
+//				std::cout << " i " << i << " H " << H << " Ku " << K
+//						<< " theta " << theta << " MT " << M_T << " MS " << M_0
+//						<< " phiUP " << phiUp << " Jup " << J_up << " MSUp"
+//						<< MS_up << " MSDn " << MS_down << " phiDN " << phiDown
+//						<< " JDn " << J_down << std::endl;
+
+					std::cout << std::setprecision(15) << "i: " << i
+							<< " p " << phase << std::endl;
+//							<< " k "
+//							<< K << " ASin " << ASin << " ACos " << ACos
+//							<< " part  " << J_down << " abs1 " << absPhase1
+//							<< " abs2 " << absPhase2 << " ct1 " << CTot1
+//							<< " ct2 " << CTot2 << " p1 " << phase1 << " p2 "
+//							<< phase2 <<
+
 
 				*it = phase;
 				it++;
