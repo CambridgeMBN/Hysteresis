@@ -144,7 +144,7 @@ struct Stack {
 
 		std::cout << " down: " << down->M(0) << std::endl;
 
-		for (int j = 0; j < 1; j++) {
+		for (int j = 0; j < 2; j++) {
 			std::cout << " " << std::endl;
 			std::vector<double>::iterator it = top->phiList.begin();
 

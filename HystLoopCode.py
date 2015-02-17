@@ -32,7 +32,7 @@ for T in Tlist:
     nGd=int(round(Thickness_Gd/0.3,0))
     nNihalf=int(round(Thickness_Ni/0.4,0))
     nNi=nNihalf*2
-    
+    print ' gd ', nGd, ' ni ', nNi
     Ni = [0]
     Gd = [1]
     layers = nNihalf*Ni + (nGd)*Gd + nNihalf*Ni
@@ -128,16 +128,17 @@ for T in Tlist:
         
     def hysterisis(phi0,RANGE):
         RANGE = [0]
-        for k in RANGE:
+        for k in [0, 1]:
+            print ' k: ', k
             iterations = 0
             delta = array(range(n_stack))
 
             # while delta[2:-2].max()>0.1: # 0.0001
             while (iterations <= 0):
-                print " \n"
+                print 'iter', iterations, " \n"
                 phi_check=copy(phi0)
-                
-                for i in range(1, half_point, 1): # range(1, half_point,1): 
+
+                for i in range(1, half_point, 1): # range(1, half_point,1):
                     phi0[i]= magnetic_energy(H[k],Ku[i],theta,Mt[i],Ms[i],\
                         Ms[i-1],phi0[i-1],J[i-1],Ms[i+1],phi0[i+1],J[i], i)
                     a = phi0
@@ -145,10 +146,10 @@ for T in Tlist:
                     phi0[len(Ms)-1-i]=phi0[i]
                     # b = phi0
                     # print "p02 ", phi0 , " diff ", a-b
-                     
-                delta = abs(phi_check - phi0) 
-                
-                iterations+=1
+
+                delta = abs(phi_check - phi0)
+                iterations = iterations + 1
+                print 'iter: ', iterations
 
             b = int(B[k]*100)
             t = int(T)
@@ -162,12 +163,14 @@ for T in Tlist:
         return Mtot_Ni, Mtot_Gd, phi0
 
     hysterisis_fw1=hysterisis(phi0,range(len(arange(-0.5,0,0.01)),len(H),1))
+    print " \n ", ' MNi: ', hysterisis_fw1[0]
+    print " \n ", ' MGd: ', hysterisis_fw1[1]
     phi0=hysterisis_fw1[2]
-    hysterisis_bw=hysterisis(phi0,range(len(H)-1,-1,-1))
-
-    Mtot_Ni_bw=hysterisis_bw[0]
-    Mtot_Gd_bw=hysterisis_bw[1]
-    Mtot_Ni=-Mtot_Ni_bw
-    Mtot_Gd=-Mtot_Gd_bw
+    # hysterisis_bw=hysterisis(phi0,range(len(H)-1,-1,-1))
+   #
+   #  Mtot_Ni_bw=hysterisis_bw[0]
+   #  Mtot_Gd_bw=hysterisis_bw[1]
+   #  Mtot_Ni=-Mtot_Ni_bw
+   #  Mtot_Gd=-Mtot_Gd_bw
 
     print ('T = ' + str(T))
