@@ -85,6 +85,10 @@ public:
 
 	static double getT();
 
+	static void setH(double H);
+
+	static double getH();
+
 	static void createStack(int layers, double phi, Element * el);
 
 	static void setPhase(Stack *prev, Stack *it, Stack *next) {
@@ -95,6 +99,8 @@ public:
 	static std::vector<double> getMagnetisation(double T);
 
 	static void prepare(std::vector<double> J_ex);
+
+	static void saveToFile();
 };
 
 class Gd: public Element {
@@ -155,5 +161,4 @@ public:
 		return 4000 / rho * 4;
 	}
 };
-
 #endif /* PYTHONCOPY_CPP2_ */

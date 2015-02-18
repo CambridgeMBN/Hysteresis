@@ -1,20 +1,59 @@
-#include "PythonCopy.cpp"
 #include <cmath>
+#include <iostream>
+#include <fstream>
+#include <stdio.h>
 
-int Element::counter = 0;
+#include "PythonCopy.cpp"
+
 const double Element::mu_0 = 4 * M_PI * 1e-7;
 const double Element::mu_B = 9.274e-24;
 double Element::theta = M_PI / 4;
 std::vector<std::vector<Stack *>> Element::elementGroup; // Element list
 std::vector<double>::iterator Element::exchangeIterator; // List of J_ex at interfaces
 
-double Element::H; // Magnetic field strength
-double Element::T; // Temperature
+double Element::H = 0.1 / Element::mu_0; // Magnetic field strength
+double Element::T = 6.4; // Temperature
 double Element::topLayerExchangeBias = 0; // Top layer may be exchange biased
 std::vector<double> Element::exchangeList;
 
+void Element::saveToFile() {
+	std::ofstream angles;
+
+	char fileName [100];
+
+	double B = Element::H * Element::mu_0 * 100;
+	std::cout << "B: " << B << std::endl;
+	sprintf(fileName, "Arrow_Data/Arrows_%i_%4.2f",
+			(int) B, Element::T);
+	angles.open(fileName);
+
+	std::vector<std::vector<Stack *>>::iterator list_it;
+	std::vector<Stack *>::iterator stack_it;
+
+	for (list_it = Element::elementGroup.begin();
+			list_it != Element::elementGroup.end(); list_it++) {
+		for (stack_it = list_it->begin(); stack_it != list_it->end();
+				stack_it++) {
+			angles << *(*stack_it)->phi << std::endl;
+
+		}
+
+	}
+
+	angles.close();
+}
+
 void Element::prepare(std::vector<double> J_ex) {
 	Element::exchangeList = J_ex;
+	Element::exchangeIterator = Element::exchangeList.begin();
+}
+
+void Element::setH(double H) {
+	Element::H = H;
+}
+
+double Element::getH() {
+	return Element::H;
 }
 
 void Element::setT(double T) {
@@ -26,30 +65,29 @@ double Element::getT() {
 }
 
 std::vector<double> Element::getMagnetisation(double T) {
-		std::vector<double> magnetisation;
+	std::vector<double> magnetisation;
 
-		// Calculate individual magnetisations for the different layers
-		for (std::vector<Stack *> stackList : Element::elementGroup) {
-			double m = 0;
-			for (Stack * stack : stackList) {
-				m += stack->el->M(T) * cos(*stack->phi);
-			}
-			magnetisation.push_back(m);
+	// Calculate individual magnetisations for the different layers
+	for (std::vector<Stack *> stackList : Element::elementGroup) {
+		double m = 0;
+		for (Stack * stack : stackList) {
+			m += stack->el->M(T) * cos(*stack->phi);
 		}
-
-		// Calculate total magnetisation
-		double total = 0;
-		for (double m : magnetisation) {
-			total += m;
-		}
-
-		magnetisation.push_back(total); // Last element of magnetisation list is the total
-
-		return magnetisation;
+		magnetisation.push_back(m);
 	}
 
+	// Calculate total magnetisation
+	double total = 0;
+	for (double m : magnetisation) {
+		total += m;
+	}
+
+	magnetisation.push_back(total); // Last element of magnetisation list is the total
+
+	return magnetisation;
+}
+
 void Element::phaseIterate() {
-	H = 0.4;
 	/*
 	 * Iterates through all the elements in all the lists to determine the phase at a given element of a given list
 	 */
@@ -88,11 +126,13 @@ void Element::phaseIterate() {
 				next = *std::next(stack_it); // next element of same stack_it list
 			}
 
-			std::cout << " prev: " << *prev->phi << " of "
-					<< prev->el->getElement() << " \t it: " << *it->phi
-					<< " of " << it->el->getElement() << " \t next "
-					<< *next->phi << " of " << next->el->getElement()
-					<< std::endl;
+			Element::setPhase(prev, it, next);
+
+//			std::cout << " prev: " << *prev->phi << " of "
+//					<< prev->el->getElement() << " \t it: " << *it->phi
+//					<< " of " << it->el->getElement() << " \t next "
+//					<< *next->phi << " of " << next->el->getElement()
+//					<< std::endl;
 		}
 	}
 }
@@ -103,8 +143,7 @@ void Element::createStack(int layers, double phi, Element * el) {
 	for (int i = 0; i < layers; i++) {
 		Stack *s = new Stack();
 		s->el = el;
-		s->phi = new double(counter); // counter
-		counter++;
+		s->phi = new double(phi);
 		stackList.push_back(s);
 	}
 
@@ -112,7 +151,6 @@ void Element::createStack(int layers, double phi, Element * el) {
 }
 
 void Element::setPhase(Stack *prev, Stack *it, Stack *next, double H_eff) {
-	std::cout << "i " << std::endl;
 	double K = it->el->K(Element::T);
 	double M_0 = it->el->M(0);
 	double M_T = it->el->M(Element::T);
@@ -128,8 +166,7 @@ void Element::setPhase(Stack *prev, Stack *it, Stack *next, double H_eff) {
 	if (prev->el->getElement().compare(it->el->getElement()) == 0) {
 		J_up = prev->el->getJ_s();
 	} else {
-		std::cout << "top exchange: "; // << *Element::exchangeIterator;
-		J_up = 0; // *Element::exchangeIterator;
+		J_up = *Element::exchangeIterator;
 	}
 
 	double MS_down = next->el->M(0);
@@ -140,9 +177,8 @@ void Element::setPhase(Stack *prev, Stack *it, Stack *next, double H_eff) {
 	if (prev->el->getElement().compare(it->el->getElement()) == 0) {
 		J_down = next->el->getJ_s();
 	} else {
-		std::cout << "down exchange: "; // << *Element::exchangeIterator;
-		J_down = 0; //*Element::exchangeIterator;
-//			Element::exchangeIterator++;
+		J_down = *Element::exchangeIterator;
+		Element::exchangeIterator++;
 	}
 
 	double ASin = J_up * MS_up * sin(phiUp) + J_down * MS_down * sin(phiDown);
@@ -168,19 +204,25 @@ void Element::setPhase(Stack *prev, Stack *it, Stack *next, double H_eff) {
 
 	double phase = (CTot1 < CTot2) ? phase2 : phase1;
 
-//		*it->phi = phase;
-	std::cout << "phase: " << *it->phi << std::endl;
+	*it->phi = phase;
 }
 
 void test() {
 	new Ni(7);
 	new Gd(7.9);
-	new Ni(7);
+//	new Ni(7);
 
-	std::vector<double> J_ex = {1, 2};
+	std::cout << "H: " << Element::getH() << std::endl;
+	std::vector<double> J_ex = { 1, 2 };
 
-	Element::prepare(J_ex);
-	Element::phaseIterate();
+
+
+	for (int i = 0; i < 100; i++) {
+		Element::prepare(J_ex);
+		Element::phaseIterate();
+	}
+
+	Element::saveToFile();
 
 //	Element::getMagnetisation(1);
 }
