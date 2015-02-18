@@ -120,7 +120,7 @@ for T in Tlist:
         else:
             phase=phase1
         
-        print 'i ', i, ' phase: ', phase
+        # print 'i ', i, ' phase: ', phase
         # if i > 16:
         #     print 'i ', i, 'k ', Ku, ' as ', Asin, ' acos ', Acos, ' part ', Jdn, ' abs1 ', absphase1, ' abs2 ', absphase2, ' ct1 ', Ctot2, ' ct2 ', Ctot2, ' p1 ', phase1, ' p2 ',phase2, ' p ', phase
         # print phase
@@ -135,7 +135,7 @@ for T in Tlist:
 
             # while delta[2:-2].max()>0.1: # 0.0001
             while (iterations <= 0):
-                print 'iter', iterations, " \n"
+                # print 'iter', iterations, " \n"
                 phi_check=copy(phi0)
 
                 for i in range(1, half_point, 1): # range(1, half_point,1):
@@ -149,22 +149,23 @@ for T in Tlist:
 
                 delta = abs(phi_check - phi0)
                 iterations = iterations + 1
-                print 'iter: ', iterations
+                # print 'iter: ', iterations
 
             b = int(B[k]*100)
             t = int(T)
             savetxt(savepath + 'Arrows_%i_%i' %(b, t), phi0)
             
-            
             Mtot_Ni[k] = sum(Mt[1:nNi/2+1]*cos(phi0[1:nNi/2+1])) + \
                          sum(Mt[nNi/2+nGd+1:-0]*cos(phi0[nNi/2+nGd+1:-0]))
-            Mtot_Gd[k] = sum(Mt[nNi/2+1:nNi/2+nGd+1]*cos(phi0[nNi/2+1:nNi/2+nGd+1]))
 
+            Mtot_Gd[k] = sum(Mt[nNi/2+1:nNi/2+nGd+1]*cos(phi0[nNi/2+1:nNi/2+nGd+1]))
+            print('MNi', Mtot_Ni[k], ' MGd ', Mtot_Gd[k])
+            
         return Mtot_Ni, Mtot_Gd, phi0
 
     hysterisis_fw1=hysterisis(phi0,range(len(arange(-0.5,0,0.01)),len(H),1))
     print " \n ", ' MNi: ', hysterisis_fw1[0]
-    print " \n ", ' MGd: ', hysterisis_fw1[1]
+    # print " \n ", ' MGd: ', hysterisis_fw1[1]
     phi0=hysterisis_fw1[2]
     # hysterisis_bw=hysterisis(phi0,range(len(H)-1,-1,-1))
    #

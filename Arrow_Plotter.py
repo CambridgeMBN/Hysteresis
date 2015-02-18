@@ -1,5 +1,5 @@
 #import matplotlib.pyplot as plt
-import matplotlib
+import matplotlib, sys
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,8 +11,12 @@ arpath  = 'Arrow_Data/'
 
 field = '-1'
 temp = '6'
-
-dat = np.loadtxt(arpath + 'Arrows' + '_' + field + '_' + temp)
+if len(sys.argv) > 1:
+    file = sys.argv[1]
+else:
+    file = 'Arrows' + '_' + field + '_' + temp
+path = arpath + file
+dat = np.loadtxt(path)
 #dat = np.loadtxt(arpath + 'Arrows49_10K')
 
 ardat = np.delete(dat, [0,len(dat)-1])
@@ -32,7 +36,7 @@ class Arrow3D(FancyArrowPatch):
         self.set_positions((xs[0],ys[0]),(xs[1],ys[1]))
         FancyArrowPatch.draw(self, renderer)
 
-cols = (['k'] * 18) + (['r'] * 26) + (['k'] * 18)
+cols = (['k'] * 17) + (['r'] * 26) + (['k'] * 18)
 
 for i in range(len(ardat)):
     a = Arrow3D([0,0.5*np.sin(ardat[i])],[0,0.5*np.cos(ardat[i])],[i,i],
