@@ -1,19 +1,20 @@
 #include "PythonCopy.cpp"
 #include <cmath>
 
+int Element::counter = 0;
+const double Element::mu_0 = 4 * M_PI * 1e-7;
+const double Element::mu_B = 9.274e-24;
+double Element::theta = M_PI / 4;
+std::vector<std::vector<Stack *>> Element::elementGroup; // Element list
+std::vector<double>::iterator Element::exchangeIterator; // List of J_ex at interfaces
 
-//const double Element::mu_0 = 4 * M_PI * 1e-7;
-//const double Element::mu_B = 9.274e-24;
-//double Element::theta = M_PI / 4;
-//std::vector<std::vector<Stack *>> Element::elementGroup; // Element list
-//std::vector<double>::iterator Element::exchangeIterator; // List of J_ex at interfaces
-//
-//double Element::H; // Magnetic field strength
-//double Element::T; // Temperature
-//double Element::topLayerExchangeBias = 0; // Top layer may be exchange biased
+double Element::H; // Magnetic field strength
+double Element::T; // Temperature
+double Element::topLayerExchangeBias = 0; // Top layer may be exchange biased
+std::vector<double> Element::exchangeList;
 
 void Element::prepare(std::vector<double> J_ex) {
-//	Element::exchangeList = J_ex;
+	Element::exchangeList = J_ex;
 }
 
 void Element::setT(double T) {
@@ -50,21 +51,14 @@ std::vector<double> Element::getMagnetisation(double T) {
 void Element::phaseIterate() {
 	H = 0.4;
 	/*
-	 * Iterates through all the elements in all the lists to determine the phase at a given point
+	 * Iterates through all the elements in all the lists to determine the phase at a given element of a given list
 	 */
 
 	std::vector<std::vector<Stack *>>::iterator list_it;
 	std::vector<Stack *>::iterator stack_it;
 
-	/*
-	 * Top layer references previous layer as itself
-	 */
-	int i = 0;
-	int j = 0;
 	for (list_it = Element::elementGroup.begin();
 			list_it != Element::elementGroup.end(); list_it++) {
-		std::cout << "j: " << j << std::endl;
-		j++;
 		for (stack_it = list_it->begin(); stack_it != list_it->end();
 				stack_it++) {
 
@@ -74,33 +68,24 @@ void Element::phaseIterate() {
 
 			if (stack_it == list_it->begin()) {
 				if (list_it == Element::elementGroup.begin()) {
-					// first element of first list
-					std::cout << "first " << std::endl;
-					prev = *stack_it;
+					prev = *stack_it; // first element of first list is mirrored
 				} else {
-					// get previous list
-//						std::cout << *std::prev(list_it)
-					prev = *(std::prev(list_it)->end() - 1);
-//						prev = *(std::prev(list_it)->end()-1);
+					prev = *(std::prev(list_it)->end() - 1); // last element of previous list
 				}
 			} else {
-				prev = *std::prev(stack_it);
+				prev = *std::prev(stack_it); // previous element of same stack_it list
 			}
 
 			it = *stack_it;
 
 			if (stack_it == list_it->end() - 1) {
 				if (list_it == Element::elementGroup.end() - 1) {
-					std::cout << "i: " << i << " endd " << std::endl;
-					next = it;
+					next = it; // last element is mirrored as next
 				} else {
-					next = (*std::next(list_it)->begin());
-					std::cout << "nextx: "
-							<< *(*std::next(list_it)->begin())->phi
-							<< std::endl;
+					next = (*std::next(list_it)->begin()); // first element of next list
 				}
 			} else {
-				next = *std::next(stack_it);
+				next = *std::next(stack_it); // next element of same stack_it list
 			}
 
 			std::cout << " prev: " << *prev->phi << " of "
@@ -108,7 +93,6 @@ void Element::phaseIterate() {
 					<< " of " << it->el->getElement() << " \t next "
 					<< *next->phi << " of " << next->el->getElement()
 					<< std::endl;
-			i++;
 		}
 	}
 }
@@ -186,4 +170,17 @@ void Element::setPhase(Stack *prev, Stack *it, Stack *next, double H_eff) {
 
 //		*it->phi = phase;
 	std::cout << "phase: " << *it->phi << std::endl;
+}
+
+void test() {
+	new Ni(7);
+	new Gd(7.9);
+	new Ni(7);
+
+	std::vector<double> J_ex = {1, 2};
+
+	Element::prepare(J_ex);
+	Element::phaseIterate();
+
+//	Element::getMagnetisation(1);
 }

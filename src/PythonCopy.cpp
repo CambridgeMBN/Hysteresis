@@ -71,7 +71,7 @@ public:
 		return J_s;
 	}
 
-	double setElement(std::string element) {
+	void setElement(std::string element) {
 		this->element = element;
 	}
 
@@ -96,20 +96,6 @@ public:
 
 	static void prepare(std::vector<double> J_ex);
 };
-
-// To delete
-int Element::counter = 0;
-const double Element::mu_0 = 4 * M_PI * 1e-7;
-const double Element::mu_B = 9.274e-24;
-double Element::theta = M_PI / 4;
-std::vector<std::vector<Stack *>> Element::elementGroup; // Element list
-//std::vector<double>::iterator Element::exchangeIterator; // List of J_ex at interfaces
-//
-double Element::H; // Magnetic field strength
-double Element::T; // Temperature
-//double Element::topLayerExchangeBias = 0; // Top layer may be exchange biased
-
-//std::vector<double> Element::exchangeList = {};
 
 class Gd: public Element {
 private:
@@ -169,18 +155,5 @@ public:
 		return 4000 / rho * 4;
 	}
 };
-
-void test() {
-	new Ni(7);
-	new Gd(7.9);
-	new Ni(7);
-
-	std::vector<double> J_ex = {1, 2};
-
-	Element::prepare(J_ex);
-	Element::phaseIterate();
-
-//	Element::getMagnetisation(1);
-}
 
 #endif /* PYTHONCOPY_CPP2_ */

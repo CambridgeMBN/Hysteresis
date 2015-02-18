@@ -5,17 +5,14 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
 ../src/PythonCopy.cpp \
-../src/Test.cpp \
 ../src/hysteresis.cpp 
 
 OBJS += \
 ./src/PythonCopy.o \
-./src/Test.o \
 ./src/hysteresis.o 
 
 CPP_DEPS += \
 ./src/PythonCopy.d \
-./src/Test.d \
 ./src/hysteresis.d 
 
 
