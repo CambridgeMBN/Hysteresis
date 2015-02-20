@@ -32,7 +32,7 @@ for T in Tlist:
     nGd=int(round(Thickness_Gd/0.3,0))
     nNihalf=int(round(Thickness_Ni/0.4,0))
     nNi=nNihalf*2
-    print ' gd ', nGd, ' ni ', nNi
+    # print ' gd ', nGd, ' ni ', nNi
     Ni = [0]
     Gd = [1]
     layers = nNihalf*Ni + (nGd)*Gd + nNihalf*Ni
@@ -119,8 +119,16 @@ for T in Tlist:
             phase=phase2
         else:
             phase=phase1
-        
+#
+# std::cout << "Jup " << J_up << " J_down " << J_down << " phiUp " << phiUp
+#             << " phiDown " << phiDown << "M " << MS_up << " MDown " << MS_down
+#             << " Asin: " << ASin << " ACos: " << ACos << " BTot " << BTot
+#             << std::endl;
+        print  i, ' Jup ', Jup, ' Jd ', Jdn, ' phiUp ', phiup, ' phidn ', phidn, ' Msup ', Msup, ' Msdn ', Msdn, \
+            ' Asin ', Asin, ' Acos ', Acos, ' Bt ', Btot, ' K ', Ku
         # print 'i ', i, ' phase: ', phase
+        # print 'asin: ', Asin, ' acos: ', Acos, ' Btot: ', Btot
+        # print " \n"
         # if i > 16:
         #     print 'i ', i, 'k ', Ku, ' as ', Asin, ' acos ', Acos, ' part ', Jdn, ' abs1 ', absphase1, ' abs2 ', absphase2, ' ct1 ', Ctot2, ' ct2 ', Ctot2, ' p1 ', phase1, ' p2 ',phase2, ' p ', phase
         # print phase
@@ -128,8 +136,8 @@ for T in Tlist:
         
     def hysterisis(phi0,RANGE):
         RANGE = [0]
-        for k in [0, 1]:
-            print ' k: ', k
+        for k in [0]:
+            # print ' k: ', k
             iterations = 0
             delta = array(range(n_stack))
 
@@ -159,12 +167,12 @@ for T in Tlist:
                          sum(Mt[nNi/2+nGd+1:-0]*cos(phi0[nNi/2+nGd+1:-0]))
 
             Mtot_Gd[k] = sum(Mt[nNi/2+1:nNi/2+nGd+1]*cos(phi0[nNi/2+1:nNi/2+nGd+1]))
-            print('MNi', Mtot_Ni[k], ' MGd ', Mtot_Gd[k])
+            # print('MNi', Mtot_Ni[k], ' MGd ', Mtot_Gd[k])
             
         return Mtot_Ni, Mtot_Gd, phi0
 
     hysterisis_fw1=hysterisis(phi0,range(len(arange(-0.5,0,0.01)),len(H),1))
-    print " \n ", ' MNi: ', hysterisis_fw1[0]
+    # print " \n ", ' MNi: ', hysterisis_fw1[0]
     # print " \n ", ' MGd: ', hysterisis_fw1[1]
     phi0=hysterisis_fw1[2]
     # hysterisis_bw=hysterisis(phi0,range(len(H)-1,-1,-1))

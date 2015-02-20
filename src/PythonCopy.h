@@ -8,23 +8,24 @@
 const double Element::mu_0 = 4 * M_PI * 1e-7;
 const double Element::mu_B = 9.274e-24;
 double Element::theta = M_PI / 4;
+
 std::vector<std::vector<Stack *>> Element::elementGroup; // Element list
 std::vector<double>::iterator Element::exchangeIterator; // List of J_ex at interfaces
 
-double Element::H = 0.1 / Element::mu_0; // Magnetic field strength
+double Element::H;
 double Element::T = 6.4; // Temperature
 double Element::topLayerExchangeBias = 0; // Top layer may be exchange biased
 std::vector<double> Element::exchangeList;
+int Element::count = 0; // count
 
 void Element::saveToFile() {
 	std::ofstream angles;
 
-	char fileName [100];
+	char fileName[100];
 
 	double B = Element::H * Element::mu_0 * 100;
 	std::cout << "B: " << B << std::endl;
-	sprintf(fileName, "Arrow_Data/Arrows_%i_%4.2f",
-			(int) B, Element::T);
+	sprintf(fileName, "Arrow_Data/Arrows_%i_%4.2f", (int) B, Element::T);
 	angles.open(fileName);
 
 	std::vector<std::vector<Stack *>>::iterator list_it;
@@ -37,10 +38,10 @@ void Element::saveToFile() {
 			angles << *(*stack_it)->phi << std::endl;
 
 		}
-
 	}
 
 	angles.close();
+	std::cout << "Wrote to " << fileName << std::endl;
 }
 
 void Element::prepare(std::vector<double> J_ex) {
@@ -95,6 +96,8 @@ void Element::phaseIterate() {
 	std::vector<std::vector<Stack *>>::iterator list_it;
 	std::vector<Stack *>::iterator stack_it;
 
+	list_it = Element::elementGroup.begin();
+	int i = 0;
 	for (list_it = Element::elementGroup.begin();
 			list_it != Element::elementGroup.end(); list_it++) {
 		for (stack_it = list_it->begin(); stack_it != list_it->end();
@@ -106,7 +109,7 @@ void Element::phaseIterate() {
 
 			if (stack_it == list_it->begin()) {
 				if (list_it == Element::elementGroup.begin()) {
-					prev = *stack_it; // first element of first list is mirrored
+					prev =  *stack_it; // first element of first list is mirrored
 				} else {
 					prev = *(std::prev(list_it)->end() - 1); // last element of previous list
 				}
@@ -127,12 +130,7 @@ void Element::phaseIterate() {
 			}
 
 			Element::setPhase(prev, it, next);
-
-//			std::cout << " prev: " << *prev->phi << " of "
-//					<< prev->el->getElement() << " \t it: " << *it->phi
-//					<< " of " << it->el->getElement() << " \t next "
-//					<< *next->phi << " of " << next->el->getElement()
-//					<< std::endl;
+			i++;
 		}
 	}
 }
@@ -154,7 +152,6 @@ void Element::setPhase(Stack *prev, Stack *it, Stack *next, double H_eff) {
 	double K = it->el->K(Element::T);
 	double M_0 = it->el->M(0);
 	double M_T = it->el->M(Element::T);
-
 	double MS_up = prev->el->M(0);
 	double phiUp = *prev->phi;
 	double J_up;
@@ -174,7 +171,7 @@ void Element::setPhase(Stack *prev, Stack *it, Stack *next, double H_eff) {
 	double J_down;
 
 	// Same for bottom layer
-	if (prev->el->getElement().compare(it->el->getElement()) == 0) {
+	if (next->el->getElement().compare(it->el->getElement()) == 0) {
 		J_down = next->el->getJ_s();
 	} else {
 		J_down = *Element::exchangeIterator;
@@ -184,6 +181,12 @@ void Element::setPhase(Stack *prev, Stack *it, Stack *next, double H_eff) {
 	double ASin = J_up * MS_up * sin(phiUp) + J_down * MS_down * sin(phiDown);
 	double ACos = J_up * MS_up * cos(phiUp) + J_down * MS_down * cos(phiDown);
 	double BTot = Element::mu_0 * 2 * Element::mu_B * H_eff;
+
+//	std::cout << count <<  " Jup " << J_up << " J_down " << J_down << " phiUp " << phiUp
+//			<< " phiDown " << phiDown << " MUp " << MS_up << " MDown " << MS_down
+//			<< " Asin: " << ASin << " ACos: " << ACos << " BTot " << BTot
+//			<< std::endl;
+	count++;
 
 	double CTot1 = sqrt(
 			pow(M_0 * ACos + M_T * BTot + K * cos(Element::theta), 2)
@@ -205,20 +208,24 @@ void Element::setPhase(Stack *prev, Stack *it, Stack *next, double H_eff) {
 	double phase = (CTot1 < CTot2) ? phase2 : phase1;
 
 	*it->phi = phase;
+
+//	std::cout << " phase: " << phase << std::endl;
 }
 
 void test() {
+//	new Gd(1);
+//	new Ni(4);
+
 	new Ni(7);
 	new Gd(7.9);
-//	new Ni(7);
 
+	Element::setH(0.1 / Element::mu_0); // Magnetic field strength
 	std::cout << "H: " << Element::getH() << std::endl;
-	std::vector<double> J_ex = { 1, 2 };
-
-
+	std::vector<double> J_ex = { -5e-22, -5e-22 };
 
 	for (int i = 0; i < 100; i++) {
 		Element::prepare(J_ex);
+		Element::count = 0;
 		Element::phaseIterate();
 	}
 

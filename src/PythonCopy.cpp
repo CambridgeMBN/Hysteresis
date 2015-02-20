@@ -18,6 +18,8 @@ class Element;
 struct Stack {
 	Element * el;
 	double * phi;
+
+	Stack() {}
 };
 
 class Element {
@@ -27,7 +29,6 @@ private:
 	double J_s;
 	double static T;
 	double static H;
-	int static counter;
 	std::string element; // Element name, e.g. Ni, Gd
 	std::vector<double> static exchangeList; // J_ex list
 
@@ -36,6 +37,7 @@ public:
 	double static const mu_B;
 	double static theta;
 	double static topLayerExchangeBias;
+	int static count;
 
 	std::vector<std::vector<Stack *>> static elementGroup;
 	std::vector<double>::iterator static exchangeIterator;
@@ -145,7 +147,7 @@ public:
 	Ni(double thickness) :
 			Element() {
 		int layers = round(thickness / 0.4);
-		createStack(layers, M_PI, this);
+		createStack(layers, M_PI/2, this);
 
 		setT_c(T_c);
 		setRho(rho);
@@ -155,6 +157,33 @@ public:
 
 	double M(double T) {
 		return 1.3 / 2; // or m?
+	}
+
+	double K(double T) {
+		return 4000 / rho * 4;
+	}
+};
+
+class BlankElement: public Element {
+private:
+	double T_c = 631;
+	double rho = 9.14e28;
+	double J_s = 0;
+
+public:
+
+	BlankElement() :
+		Element() {
+//		createStack(1, M_PI/2, this); // 1 layer
+
+		setT_c(T_c);
+		setRho(rho);
+		setJ_s(J_s);
+		setElement("Ni");
+	}
+
+	double M(double T) {
+		return 0;
 	}
 
 	double K(double T) {
