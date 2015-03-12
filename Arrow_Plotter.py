@@ -13,6 +13,8 @@ field = '-1'
 temp = '6'
 if len(sys.argv) > 1:
     file = sys.argv[1]
+    field = file.split('_')[1]
+    temp = file.split('_')[2]
 else:
     file = 'Arrows' + '_' + field + '_' + temp
 path = arpath + file
@@ -56,5 +58,7 @@ plt.axis('off')
 
 #plt.savefig('Arrow_Plots/Arrow_3D.pdf', bbox_inches='tight', transparent=True)
 plt.savefig('Arrow_Plots/Arrow_%s_%s.pdf' %(field, temp), bbox_inches='tight', transparent=True)
+# x = ''.join(['Arrow_Plots/',file])
+# plt.savefig(x, bbox_inches='tight', transparent=True)
 
 #plt.show()

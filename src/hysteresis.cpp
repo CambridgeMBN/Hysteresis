@@ -14,5 +14,5 @@
 #include "PythonCopy.h"
 
 int main() {
-	test();
+	runModel();
 }

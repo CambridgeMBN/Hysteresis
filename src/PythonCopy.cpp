@@ -22,6 +22,11 @@ struct Stack {
 	Stack() {}
 };
 
+struct Magnetisation {
+	double H; // external field
+	std::vector<Stack> stackList;
+};
+
 class Element {
 private:
 	double T_c; // critical temperature
@@ -33,10 +38,12 @@ private:
 	std::vector<double> static exchangeList; // J_ex list
 
 public:
+	double static delta;
 	double static const mu_0;
 	double static const mu_B;
 	double static theta;
 	double static topLayerExchangeBias;
+	bool static isNotReversed;
 	int static count;
 
 	std::vector<std::vector<Stack *>> static elementGroup;
@@ -44,6 +51,8 @@ public:
 
 	virtual double M(double T) = 0;
 	virtual double K(double T) = 0;
+
+	static std::vector<std::vector<double>> magnetisation;
 
 	Element() {
 
@@ -98,11 +107,12 @@ public:
 	}
 	static void setPhase(Stack *prev, Stack *it, Stack *next, double H_eff);
 
-	static std::vector<double> getMagnetisation(double T);
+	static void getMagnetisation();
 
 	static void prepare(std::vector<double> J_ex);
 
 	static void saveToFile();
+	static void saveMToFile();
 };
 
 class Gd: public Element {
@@ -147,7 +157,7 @@ public:
 	Ni(double thickness) :
 			Element() {
 		int layers = round(thickness / 0.4);
-		createStack(layers, M_PI/2, this);
+		createStack(layers, M_PI, this);
 
 		setT_c(T_c);
 		setRho(rho);
@@ -164,30 +174,4 @@ public:
 	}
 };
 
-class BlankElement: public Element {
-private:
-	double T_c = 631;
-	double rho = 9.14e28;
-	double J_s = 0;
-
-public:
-
-	BlankElement() :
-		Element() {
-//		createStack(1, M_PI/2, this); // 1 layer
-
-		setT_c(T_c);
-		setRho(rho);
-		setJ_s(J_s);
-		setElement("Ni");
-	}
-
-	double M(double T) {
-		return 0;
-	}
-
-	double K(double T) {
-		return 4000 / rho * 4;
-	}
-};
 #endif /* PYTHONCOPY_CPP2_ */
