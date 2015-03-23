@@ -48,6 +48,7 @@ public:
 
 	std::vector<std::vector<Stack *>> static elementGroup;
 	std::vector<double>::iterator static exchangeIterator;
+	std::vector<std::pair<int, double>> static ddelta;
 
 	virtual double M(double T) = 0;
 	virtual double K(double T) = 0;

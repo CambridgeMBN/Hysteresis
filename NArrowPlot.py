@@ -22,8 +22,8 @@ def imp(file):
         j -= 1
     return x,y,z
 
-x,y,z = imp('Arrows_-50_6.40')
-x2, y2, z2 = imp('Arrows_-5_6.40')
+x,y,z = imp('Arrows_10_6.40')
+# x2, y2, z2 = imp('Arrows_-50_6.40')
 # print alist
 
 

@@ -12,7 +12,7 @@ double Element::theta = M_PI / 4;
 double Element::delta = 0;
 std::vector<std::vector<Stack *>> Element::elementGroup; // Element list
 std::vector<double>::iterator Element::exchangeIterator; // List of J_ex at interfaces
-
+std::vector<std::pair<int, double>> Element::ddelta;
 std::vector<std::vector<double>> Element::magnetisation;
 
 double Element::H;
@@ -24,13 +24,16 @@ int Element::count = 0; // count
 
 void Element::saveToFile() {
 	std::ofstream angles;
+	std::ofstream deltas;
 
 	char fileName[100];
 
 	double B = Element::H * Element::mu_0 * 100;
 	std::cout << "B: " << B << std::endl;
-	sprintf(fileName, "Arrow_Data/Arrows_%i_%4.2f", (int) B, Element::T);
+	sprintf(fileName, "/Users/sriv1211/Dropbox/University of Cambridge/Term Project/hysteresis/Arrow_Data/Arrows_%i_%4.2f", (int) B, Element::T);
 	angles.open(fileName);
+
+	deltas.open("/Users/sriv1211/Dropbox/University of Cambridge/Term Project/hysteresis/delta.txt");
 
 	std::vector<std::vector<Stack *>>::iterator list_it;
 	std::vector<Stack *>::iterator stack_it;
@@ -44,7 +47,14 @@ void Element::saveToFile() {
 		}
 	}
 
+	std::vector<std::pair<int, double>>::iterator deltait;
+	for (deltait = Element::ddelta.begin(); deltait != Element::ddelta.end(); deltait++) {
+		deltas << deltait->first << "," << deltait->second << std::endl;
+	}
+
 	angles.close();
+	deltas.close();
+
 	std::cout << "Wrote to " << fileName << std::endl;
 }
 
@@ -168,13 +178,19 @@ void Element::phaseIterate() {
 			}
 
 			Element::setPhase(prev, it, next, H_eff);
-			Element::isNotReversed = (Element::isNotReversed) ? false : true;
+
 			i++;
+
+			Element::count++;
 		}
+
+		Element::ddelta.push_back(std::make_pair(Element::count, Element::delta));
 	}
+
 }
 
 void Element::createStack(int layers, double phi, Element * el) {
+	std::cout << "layers: " << layers << std::endl;
 	std::vector<Stack *> stackList;
 
 	for (int i = 0; i < layers; i++) {
@@ -239,87 +255,56 @@ void Element::setPhase(Stack *prev, Stack *it, Stack *next, double H_eff) {
 			(M_0 * ACos + M_T * BTot - K * cos(Element::theta) >= 0) ?
 					absPhase2 : M_PI - absPhase2;
 
+
 	double phase = (CTot1 < CTot2) ? phase2 : phase1;
+
 
 	double delta_1 = (*it->phi) - phase;
 
 	if (fabs(delta_1) >= fabs(Element::delta)) {
-//		std::cout << " pinit: " << (*it->phi) << " vs " << phase << std::endl;
+//		std::cout << "count: " << Element::count << " pinit: " << (*it->phi) << " vs " << phase << " delta :" << delta_1 << std::endl;
 		Element::delta = fabs(delta_1);
 	}
 
-	*it->phi = phase;
+	/*
+	* the phase must change by less than pi
+	*/
+
+	if (fabs(delta_1) <= M_PI)
+	{
+		*it->phi = phase;
+	} else {
+//		std::cout << " phase: " << phase << " vs " << *it->phi << std::endl;
+	}
 
 }
 
 void runModel() {
-//	new Gd(1);
-//	new Ni(4);
 
-	new Ni(10);
-//	new Gd(9.9);
-//	new Ni(7);
-//	new Gd(7.9);
-//	new Ni(7);
+	new Ni(3.5);
+	new Gd(7.9);
+	new Ni(3.5);
 
-	Element::setH(-0.5 / Element::mu_0); // Magnetic field strength
+	Element::setH(0.1 / Element::mu_0); // Magnetic field strength
 	Element::topLayerExchangeBias = 0 / Element::mu_0;
 	std::cout << "H: " << Element::getH() << std::endl;
 	std::vector<double> J_ex = { -5e-22, -5e-22 };
 
-//	for (int i = 0; i < 1; i++) {
+	for (int i = 0; i <= 5000; i++) {
+////	while (Element::delta >= 1e-3) {
 //
-//	for (int i = 0; i <= 1000; i++) {
+		Element::prepare(J_ex);
+		Element::count = 0;
+		Element::phaseIterate();
 //
-////		Element::setH(Hmax - i * delta);
-//		Element::delta = M_PI;
+		// Reverse array to iterate from bottom (but no top layer bias)
+		Element::isNotReversed = !Element::isNotReversed;
+		std::reverse(Element::elementGroup.begin(), Element::elementGroup.end());
 //
-////					std::reverse(Element::elementGroup.begin(), Element::elementGroup.end());
-////		while (Element::delta >= 1e-3) {
-//
-//			Element::prepare(J_ex);
-//			Element::count = 0;
-//			Element::phaseIterate();
-//
-//			std::reverse(Element::elementGroup.begin(), Element::elementGroup.end());
-//			std::cout << "delta: " << Element::delta << std::endl;
-//		}
-
-//		Element::getMagnetisation();
-//	}
-//
-	int steps = 30;
-	double Hmax = 180 / 0.012; // / Element::mu_0;
-	double delta = 2 * Hmax / steps;
-
-	for (int i = 0; i <= steps; i++) {
-		Element::setH(Hmax - i * delta);
-		Element::delta = M_PI;
-
-		for (int j = 0; j < 400; j++) {
-			//		while (Element::delta >= 1e-3) {
-			Element::prepare(J_ex);
-			Element::count = 0;
-			Element::phaseIterate();
-		}
-
-		Element::getMagnetisation();
+		std::cout << "delta: " << Element::delta << std::endl;
 	}
 
-	for (int i = 0; i <= steps; i++) {
-		Element::setH(-Hmax + i * delta);
-		Element::delta = M_PI;
 
-		for (int j = 0; j < 1000; j++) {
-//		while (Element::delta >= 1e-3) {
-			Element::prepare(J_ex);
-			Element::count = 0;
-			Element::phaseIterate();
-		}
-
-		Element::getMagnetisation();
-	}
-//
-	Element::saveMToFile();
+	Element::saveToFile();
 
 }
