@@ -367,7 +367,7 @@ void runModel() {
 
 	new Ni(3.5);
 	new Gd(7.9);
-//	new Ni(3.5);
+	new Ni(3.5);
 
 	Element::setH(0.1 / Element::mu_0); // Magnetic field strength
 	Element::topLayerExchangeBias = 0 / Element::mu_0;
