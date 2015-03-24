@@ -287,94 +287,94 @@ void Element::setPhase(Stack *prev, Stack *it, Stack *next, double H_eff) {
 
 }
 
-//struct Iterator {
-//
-////    std::vector<std::vector<Stack *>>::iterator list_it;
-////    std::vector<Stack *>::iterator stack_it;
-//
-////	static std::vector<std::vector<int>> stacks;
-////	static int total;
-//	bool down = true;
-//	int index = 0;
-//
-//	Stack * getN(int it) {
-//		bool found = false;
-//		int count = 0;
-//
-//		while (!found) {
-//			if (it <= Element::elementGroup[count].size() -1) {
-//				found = true;
-//			} else {
-//				it -= Element::elementGroup[count].size();
-//				count++;
-//			}
-//		}
-//
-//		return Element::elementGroup[count][it];
-//	}
-//
-//	Stack *prev() {
-//		if (index == 0) {
-//			return Element::elementGroup[0][0];
-//		}
-//
-//		return getN(index -1);
-//	}
-//
-//	Stack* next() {
-//
-//
-//		if (index == Element::layers -1) {
-//			std::vector<Stack *> l = Element::elementGroup.back();
-//			Stack* k = l.back();
-//
-//			return k;
-//		}
-//
-//		return getN(index +1);
-//	}
-//
-//	void iter() {
-//		if (index == Element::layers -1) {
-//			down = false;
-//		}
-//
-//		if (index == 0) {
-//			down = true;
-//		}
-//
-//		if (down) {
-//			index++;
-//		} else {
-//			index--;
-//		}
-////        return (down) ? getN(index+1) : getN(index -1);
-//	}
-//
-//	void getPhase() {
-//		Stack * p = prev();
-//		Stack * i = getN(index);
-//		Stack * n = next();
-////		std::tuple(prev, it, next) = env();
-//		Element::setPhase(p, i, n);
-//
-//		iter();
-//	}
-//
-//};
+struct Iterator {
+
+//    std::vector<std::vector<Stack *>>::iterator list_it;
+//    std::vector<Stack *>::iterator stack_it;
+
+//	static std::vector<std::vector<int>> stacks;
+//	static int total;
+	bool down = true;
+	int index = 0;
+
+	Stack * getN(int it) {
+		bool found = false;
+		int count = 0;
+
+		while (!found) {
+			if (it <= Element::elementGroup[count].size() -1) {
+				found = true;
+			} else {
+				it -= Element::elementGroup[count].size();
+				count++;
+			}
+		}
+
+		return Element::elementGroup[count][it];
+	}
+
+	Stack *prev() {
+		if (index == 0) {
+			return Element::elementGroup[0][0];
+		}
+
+		return getN(index -1);
+	}
+
+	Stack* next() {
+
+
+		if (index == Element::layers -1) {
+			std::vector<Stack *> l = Element::elementGroup.back();
+			Stack* k = l.back();
+
+			return k;
+		}
+
+		return getN(index +1);
+	}
+
+	void iter() {
+		if (index == Element::layers -1) {
+			down = false;
+		}
+
+		if (index == 0) {
+			down = true;
+		}
+
+		if (down) {
+			index++;
+		} else {
+			index--;
+		}
+//        return (down) ? getN(index+1) : getN(index -1);
+	}
+
+	void getPhase() {
+		Stack * p = prev();
+		Stack * i = getN(index);
+		Stack * n = next();
+//		std::tuple(prev, it, next) = env();
+		Element::setPhase(p, i, n);
+
+		iter();
+	}
+
+};
 
 void runModel() {
 
-	new Ni(3.5);
+	new Ni(7);
 	new Gd(7.9);
-	new Ni(3.5);
+	new Ni(7);
 
-	Element::setH(0.1 / Element::mu_0); // Magnetic field strength
+	Element::setH(500 / Element::mu_0); // Magnetic field strength
 	Element::topLayerExchangeBias = 0 / Element::mu_0;
 	std::cout << "H: " << Element::getH() << std::endl;
 	std::vector<double> J_ex = { -5e-22, -5e-22 };
 
-/*	Iterator it;
+	/*Iterator it;
 //	Iterator it2;
 //	it2.down = false;
 //	it2.index = Element::layers -1;
@@ -398,17 +398,21 @@ void runModel() {
 		std::cout << "delta: " << Element::delta << std::endl;
 	}
 
-*/
-	for (int i = 0; i <= 500; i++) {
-//////	while (Element::delta >= 1e-3) {
+	*/
+
+
+	for (int i = 0; i <= 1000; i++) {
+//	int i = 0;
+//	while (Element::delta >= 1e-3 && i >= 200) {
 ////
 		Element::prepare(J_ex);
+		i++;
 		Element::count = 0;
 		Element::phaseIterate();
 ////
 //		// Reverse array to iterate from bottom (but no top layer bias)
-//		Element::isNotReversed = !Element::isNotReversed;
-//		std::reverse(Element::elementGroup.begin(), Element::elementGroup.end());
+		Element::isNotReversed = !Element::isNotReversed;
+		std::reverse(Element::elementGroup.begin(), Element::elementGroup.end());
 ////
 		std::cout << "delta: " << Element::delta << std::endl;
 	}
