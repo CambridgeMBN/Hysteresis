@@ -5,6 +5,11 @@
 #include <algorithm>
 
 #include "PythonCopy.cpp"
+#include "Iter.h"
+
+#ifndef PYTHONCOPY_CPP_
+#define PYTHONCOPY_CPP_
+
 
 const double Element::mu_0 = 4 * M_PI * 1e-7;
 const double Element::mu_B = 9.274e-24;
@@ -15,7 +20,8 @@ std::vector<double>::iterator Element::exchangeIterator; // List of J_ex at inte
 std::vector<std::pair<int, double>> Element::ddelta;
 std::vector<std::vector<double>> Element::magnetisation;
 
-double Element::H;
+double Element::H = 0;
+int Element::layers = 0;
 bool Element::isNotReversed = false;
 double Element::T = 6.4; // Temperature
 double Element::topLayerExchangeBias = 0; // Top layer may be exchange biased
@@ -184,6 +190,7 @@ void Element::phaseIterate() {
 			Element::count++;
 		}
 
+		std::cout << "count: " << Element::count << " delta: " << Element::delta << std::endl;
 		Element::ddelta.push_back(std::make_pair(Element::count, Element::delta));
 	}
 
@@ -200,6 +207,7 @@ void Element::createStack(int layers, double phi, Element * el) {
 		stackList.push_back(s);
 	}
 
+	Element::layers += layers;
 	Element::elementGroup.push_back(stackList);
 }
 
@@ -231,7 +239,7 @@ void Element::setPhase(Stack *prev, Stack *it, Stack *next, double H_eff) {
 		J_down = next->el->getJ_s();
 	} else {
 		J_down = *Element::exchangeIterator;
-		Element::exchangeIterator++;
+//		Element::exchangeIterator++;
 	}
 
 	double ASin = J_up * MS_up * sin(phiUp) + J_down * MS_down * sin(phiDown);
@@ -270,7 +278,7 @@ void Element::setPhase(Stack *prev, Stack *it, Stack *next, double H_eff) {
 	* the phase must change by less than pi
 	*/
 
-	if (fabs(delta_1) <= M_PI)
+	if (fabs(delta_1) <= M_PI || 1==1)
 	{
 		*it->phi = phase;
 	} else {
@@ -279,28 +287,129 @@ void Element::setPhase(Stack *prev, Stack *it, Stack *next, double H_eff) {
 
 }
 
+//struct Iterator {
+//
+////    std::vector<std::vector<Stack *>>::iterator list_it;
+////    std::vector<Stack *>::iterator stack_it;
+//
+////	static std::vector<std::vector<int>> stacks;
+////	static int total;
+//	bool down = true;
+//	int index = 0;
+//
+//	Stack * getN(int it) {
+//		bool found = false;
+//		int count = 0;
+//
+//		while (!found) {
+//			if (it <= Element::elementGroup[count].size() -1) {
+//				found = true;
+//			} else {
+//				it -= Element::elementGroup[count].size();
+//				count++;
+//			}
+//		}
+//
+//		return Element::elementGroup[count][it];
+//	}
+//
+//	Stack *prev() {
+//		if (index == 0) {
+//			return Element::elementGroup[0][0];
+//		}
+//
+//		return getN(index -1);
+//	}
+//
+//	Stack* next() {
+//
+//
+//		if (index == Element::layers -1) {
+//			std::vector<Stack *> l = Element::elementGroup.back();
+//			Stack* k = l.back();
+//
+//			return k;
+//		}
+//
+//		return getN(index +1);
+//	}
+//
+//	void iter() {
+//		if (index == Element::layers -1) {
+//			down = false;
+//		}
+//
+//		if (index == 0) {
+//			down = true;
+//		}
+//
+//		if (down) {
+//			index++;
+//		} else {
+//			index--;
+//		}
+////        return (down) ? getN(index+1) : getN(index -1);
+//	}
+//
+//	void getPhase() {
+//		Stack * p = prev();
+//		Stack * i = getN(index);
+//		Stack * n = next();
+////		std::tuple(prev, it, next) = env();
+//		Element::setPhase(p, i, n);
+//
+//		iter();
+//	}
+//
+//};
+
 void runModel() {
 
 	new Ni(3.5);
 	new Gd(7.9);
-	new Ni(3.5);
+//	new Ni(3.5);
 
 	Element::setH(0.1 / Element::mu_0); // Magnetic field strength
 	Element::topLayerExchangeBias = 0 / Element::mu_0;
 	std::cout << "H: " << Element::getH() << std::endl;
 	std::vector<double> J_ex = { -5e-22, -5e-22 };
 
-	for (int i = 0; i <= 5000; i++) {
-////	while (Element::delta >= 1e-3) {
-//
+/*	Iterator it;
+//	Iterator it2;
+//	it2.down = false;
+//	it2.index = Element::layers -1;
+
+
+	for (int k = 0; k < 500; k++) {
+
+		Element::prepare(J_ex);
+		for (int i = 0; i < Element::layers-1; i++) {
+			double dinit = Element::delta;
+			it.getPhase();
+			double dfinal = Element::delta;
+
+//			Element::prepare(J_ex);
+//			it2.getPhase();
+
+		}
+
+		Element::ddelta.push_back(std::make_pair(Element::count, Element::delta));
+
+		std::cout << "delta: " << Element::delta << std::endl;
+	}
+
+*/
+	for (int i = 0; i <= 500; i++) {
+//////	while (Element::delta >= 1e-3) {
+////
 		Element::prepare(J_ex);
 		Element::count = 0;
 		Element::phaseIterate();
-//
-		// Reverse array to iterate from bottom (but no top layer bias)
-		Element::isNotReversed = !Element::isNotReversed;
-		std::reverse(Element::elementGroup.begin(), Element::elementGroup.end());
-//
+////
+//		// Reverse array to iterate from bottom (but no top layer bias)
+//		Element::isNotReversed = !Element::isNotReversed;
+//		std::reverse(Element::elementGroup.begin(), Element::elementGroup.end());
+////
 		std::cout << "delta: " << Element::delta << std::endl;
 	}
 
@@ -308,3 +417,5 @@ void runModel() {
 	Element::saveToFile();
 
 }
+
+#endif

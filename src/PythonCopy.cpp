@@ -44,6 +44,7 @@ public:
 	double static theta;
 	double static topLayerExchangeBias;
 	bool static isNotReversed;
+	int static layers;
 	int static count;
 
 	std::vector<std::vector<Stack *>> static elementGroup;
